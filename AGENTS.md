@@ -27,7 +27,7 @@ python3 pipeline/make.py animate --theme "<prompt>" --duration 8 --out out/<name
 python3 pipeline/make.py still --prompt "<prompt>" --out out/still.png
 python3 pipeline/make.py i2v --image out/still.png --motion "<camera + motion>" --out out/<name>.mp4 [--model kling_i2v|veo3_i2v|seedance_i2v]
 
-# singing character (still + song -> lip-synced)
+# OPTIONAL — singing character (still + song -> lip-synced). Most themes are pure animation; only use this when a face must mouth the words.
 python3 pipeline/make.py sing --image singer.png --song song.mp3 --out out/sing.mp4
 ```
 Finishing flags on any of the above: `--title "..." --logo logo.png --cta "Out now" --ass captions.ass --audio track.wav --no-film`.

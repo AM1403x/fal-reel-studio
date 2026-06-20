@@ -61,6 +61,8 @@ def _download(url, out):
 def _media_url(r, keys=("video", "image", "images", "audio")):
     """Schema-tolerant extractor for the produced media URL across fal models."""
     if isinstance(r, dict):
+        if isinstance(r.get("url"), str) and r["url"].startswith("http"):
+            return r["url"]
         for k in keys:
             v = r.get(k)
             if isinstance(v, str) and v.startswith("http"):
@@ -83,9 +85,17 @@ def _media_url(r, keys=("video", "image", "images", "audio")):
     return None
 
 
+def _normalize(model_key, args):
+    """Smooth over per-model arg quirks so the common flags 'just work'."""
+    mid = MODELS.get(model_key, model_key)
+    if "veo" in mid and "duration" in args:          # Veo wants '4s' | '6s' | '8s'
+        args["duration"] = f"{str(args['duration']).rstrip('s')}s"
+    return args
+
+
 def _run(model_key, args, out):
     mid = MODELS.get(model_key, model_key)  # accept a raw fal id too
-    r = _fal().subscribe(mid, arguments=args)
+    r = _fal().subscribe(mid, arguments=_normalize(model_key, args))
     url = _media_url(r)
     if not url:
         sys.exit(f"{mid}: no media url in response. Keys: {list(r) if isinstance(r, dict) else type(r)}")
