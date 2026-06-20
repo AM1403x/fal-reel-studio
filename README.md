@@ -14,9 +14,9 @@ a frontier coding model (Claude Code / Cursor) — you talk, it builds. No codin
    ```
 2. **Open this folder in [Claude Code](https://claude.com/claude-code)** (or Cursor).
 3. **Just ask**, e.g.:
-   > "Make me a 9:16 animation: *a paper boat drifting through a glowing night city, dreamy, cinematic* — about 8 seconds."
+   > "I want an animation about *a paper boat drifting through a glowing night city, dreamy.*"
 
-   The model reads [`AGENTS.md`](AGENTS.md), runs the pipeline, and drops the finished clip in `out/`. Ask for changes in plain English and it iterates.
+   It will **always ask you 3 quick things** (how long · one theme or several to stitch · aspect ratio), then **propose a short plan** — which single best model it'll use *and why* — and wait for your **go-ahead before rendering**. On approval it builds the finished clip into `out/`. Ask for changes in plain English and it iterates.
 
 > **Recommended tool:** Claude Code + this repo + your fal key. That combination *is* the "go-to tool" — a frontier model doing the prompting/iterating, the best video models doing the rendering.
 
@@ -25,8 +25,9 @@ a frontier coding model (Claude Code / Cursor) — you talk, it builds. No codin
 ## What it makes
 
 - **Theme → animation** (text-to-video) — the main flow
+- **Multiple themes → one seamless video** — generated separately, then stitched with transitions
 - **Still → animation** (image-to-video) — for tighter art direction
-- **Singing character** — a face lip-synced to a song (optional)
+- **Singing character** — a face lip-synced to a song (optional; most themes are pure animation)
 - **Auto-finish** — cinematic grade + subtle film/handheld grain (kills the "AI sheen"), optional title, logo, CTA, captions → on-spec 1080×1920 MP4
 
 ## The models (all via one fal key — best available; cost is not optimized)

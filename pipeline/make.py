@@ -53,6 +53,7 @@ def main():
     # shared finishing flags
     for p in (a, i, g):
         p.add_argument("--out", required=True)
+        p.add_argument("--raw", action="store_true", help="skip finish; output the raw gen (for stitching, then finish once)")
         p.add_argument("--no-film", action="store_true")
         p.add_argument("--title"); p.add_argument("--logo"); p.add_argument("--cta")
         p.add_argument("--ass"); p.add_argument("--audio")
@@ -86,6 +87,10 @@ def main():
         if not args.audio:
             args.audio = args.song                             # final clip carries the real song
 
+    if getattr(args, "raw", False):
+        os.replace(raw, args.out)
+        print("raw ->", args.out, "(stitch, then finish)")
+        return
     finish(raw, args.out, film=not args.no_film, title=args.title, logo=args.logo,
            cta=args.cta, ass=args.ass, audio=args.audio)
     print("reel ->", args.out)
