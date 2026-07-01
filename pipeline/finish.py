@@ -1,12 +1,12 @@
-"""finish.py — turn a generated clip into a publish-ready 9:16 reel.
+"""finish.py — turn a generated clip into a publish-ready reel.
 
-Conforms to 1080x1920 H.264, optional colour grade + a film/handheld "de-AI" finish,
+Conforms to a target H.264 canvas, optional colour grade + a film/handheld "de-AI" finish,
 optional top-left logo, on-screen title, burned captions, and an end-card CTA.
 Keeps the clip's own audio unless --audio supplies a track to overlay.
 
 Usage:
   python3 pipeline/finish.py --in raw.mp4 --out reel.mp4 \
-      [--title "Free the Entangle"] [--logo logo.png] [--cta "Out now"] \
+      [--aspect 9:16] [--title "Free the Entangle"] [--logo logo.png] [--cta "Out now"] \
       [--ass captions.ass] [--audio song.wav] [--no-film]
 """
 import argparse, os
@@ -16,7 +16,7 @@ FONTS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GRADE = "eq=brightness=0.02:saturation=1.07:contrast=1.04"
 # gentle handheld drift + film grain + vignette — softens the synthetic look
 FILMIFY = ("crop=iw*0.965:ih*0.965:'(iw-ow)/2+5*sin(2*PI*t/3)':'(ih-oh)/2+4*cos(2*PI*t/2.6)',"
-           "scale=1080:1920,vignette=PI/6,noise=alls=3:allf=t,eq=contrast=1.02")
+           "scale={width}:{height},vignette=PI/6,noise=alls=3:allf=t,eq=contrast=1.02")
 
 
 def _font(name):
@@ -24,12 +24,25 @@ def _font(name):
     return p if os.path.exists(p) else name  # fall back to fontconfig name
 
 
-def finish(src, out, grade=None, film=True, title=None, logo=None, cta=None, ass=None, audio=None):
+def _canvas(aspect):
+    if aspect == "2:3":
+        return 1080, 1620
+    if aspect == "3:4":
+        return 1080, 1440
+    if aspect == "1:1":
+        return 1080, 1080
+    if aspect == "16:9":
+        return 1920, 1080
+    return 1080, 1920
+
+
+def finish(src, out, grade=None, film=True, title=None, logo=None, cta=None, ass=None, audio=None, aspect="9:16"):
     g = grade or GRADE
+    width, height = _canvas(aspect)
     fonts_dir = f":fontsdir={FONTS}" if os.path.isdir(FONTS) else ""
-    chain = [f"[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30,{g}"]
+    chain = [f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},setsar=1,fps=30,{g}"]
     if film:
-        chain.append(FILMIFY)
+        chain.append(FILMIFY.format(width=width, height=height))
     vlabel = "[vbase]"
     filt = ",".join(chain) + vlabel
 
@@ -74,6 +87,7 @@ if __name__ == "__main__":
     ap.add_argument("--grade"); ap.add_argument("--no-film", action="store_true")
     ap.add_argument("--title"); ap.add_argument("--logo"); ap.add_argument("--cta")
     ap.add_argument("--ass"); ap.add_argument("--audio")
+    ap.add_argument("--aspect", default="9:16")
     a = ap.parse_args()
-    finish(a.src, a.out, a.grade, not a.no_film, a.title, a.logo, a.cta, a.ass, a.audio)
+    finish(a.src, a.out, a.grade, not a.no_film, a.title, a.logo, a.cta, a.ass, a.audio, a.aspect)
     print("finished ->", a.out)

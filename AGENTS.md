@@ -1,11 +1,11 @@
 # AGENTS.md — how to make an animation in this repo
 
 You are a coding agent (Claude Code / Cursor) with this repo open. The user describes a theme for a
-short vertical video; you produce a **finished 9:16 reel in `out/`** using the fal pipeline.
+short vertical video; you produce a **finished 9:16 reel in `out/`** using the configured provider pipeline.
 **Cost is not a concern — always reach for the best model.**
 
 ## Setup (once)
-- Ensure `FAL_KEY` is set: check `.env`. If missing, ask the user to paste their key from fal.ai into `.env`.
+- Ensure a provider key is set: `FAL_KEY` for fal or `OPENROUTER_API_KEY` for OpenRouter. Check `.env`; if missing, ask the user to paste the right key into `.env`.
 - `pip install -r requirements.txt` (brings fal-client, Pillow, and a libass-enabled ffmpeg).
 - macOS + want title/caption fonts: `bash pipeline/link_fonts.sh`.
 
@@ -37,10 +37,11 @@ short vertical video; you produce a **finished 9:16 reel in `out/`** using the f
 ```sh
 # theme -> animation (text-to-video; Veo 3.1 default)
 python3 pipeline/make.py animate --theme "<prompt>" --duration 8 --out out/<name>.mp4 [--model kling|seedance] [--audio-native]
+python3 pipeline/make.py animate --provider openrouter --theme "<prompt>" --duration 8 --out out/<name>.mp4 [--model kling|seedance] [--audio-native]
 
 # more control: still first, then bring it to life
 python3 pipeline/make.py still --prompt "<prompt>" --out out/still.png
-python3 pipeline/make.py i2v --image out/still.png --motion "<camera + motion>" --out out/<name>.mp4 [--model kling_i2v|veo3_i2v|seedance_i2v]
+python3 pipeline/make.py i2v --image out/still.png --motion "<camera + motion>" --out out/<name>.mp4 [--model kling_i2v|veo3_i2v|seedance_i2v] [--provider openrouter]
 
 # OPTIONAL — singing character (still + song -> lip-synced). Most themes are pure animation; only use this when a face must mouth the words.
 python3 pipeline/make.py sing --image singer.png --song song.mp3 --out out/sing.mp4
@@ -61,10 +62,11 @@ python3 pipeline/finish.py --in out/joined.mp4 --out out/final.mp4 --title "..."
 - **Kling 3.0 Pro** (`kling` / `kling_i2v`): best motion + human/character performance. Default for still→animation and anything with people/dancing.
 - **Seedance 2.0** (`seedance`): cinematic multi-shot, director-level camera, strong lip-sync.
 - **Stills**: FLUX Pro Ultra (`flux`); for a **recurring character** across clips, use Nano Banana with `--refs` so the face stays consistent.
+- **Provider**: fal is default. Use `--provider openrouter` for OpenRouter-routed video generation; `sing` stays fal-only because OpenRouter does not expose the repo's vocal isolation/lip-sync models.
 
 ## Hard-won tips (read before you render)
 - Faces and **hands** are where AI breaks — keep hands simple/still or out of frame; frame faces large.
 - **Big faces lip-sync well; crowds do not.** A "choir/group sing" won't sync per-face — do a tight 1–2 person shot, or cut between solo shots.
 - You already picked the single best model and got it approved — **don't fan out across models.** Render that model; if it misses, refine the prompt or re-roll the *same* model. One strong hero → many posts (reuse footage).
-- If a model param errors, check that model's current input schema on fal.ai and pass extra params through (`make.py` forwards `--resolution/--duration`; `falkit` functions accept arbitrary `**extra`).
-- Tune `MODELS` in `pipeline/falkit.py` whenever a newer frontier model ships.
+- If a model param errors, check that model's current input schema on fal.ai or OpenRouter and pass extra params through (`make.py` forwards `--resolution/--duration`; `falkit` functions accept arbitrary `**extra`).
+- Tune `MODELS` / `OPENROUTER_MODELS` in `pipeline/falkit.py` whenever a newer frontier model ships.
